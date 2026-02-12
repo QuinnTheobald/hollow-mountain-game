@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hollow Mountain — A Taoist Adventure</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f5f0e8;
+    --aged: #e8dfc8;
+    --brush: #2c2018;
+    --red: #8b2020;
+    --gold: #b8960c;
+    --mist: #9ba8a0;
+    --water: #4a7a8a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    font-family: 'Noto Serif', 'Georgia', serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Ink wash background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 80%, rgba(74,122,138,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 20%, rgba(139,32,32,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, rgba(44,32,24,0.4) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .scroll-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 760px;
+  }
+
+  /* Decorative top border */
+  .scroll-top {
+    height: 18px;
+    background: linear-gradient(90deg,
+      var(--ink) 0%,
+      #3d2e1e 15%,
+      #5a4535 30%,
+      #6b5542 50%,
+      #5a4535 70%,
+      #3d2e1e 85%,
+      var(--ink) 100%
+    );
+    border-radius: 3px 3px 0 0;
+    position: relative;
+  }
+
+  .scroll-top::before, .scroll-top::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: #8b7355;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px #5a4535, 0 0 0 5px #3d2e1e;
+  }
+  .scroll-top::before { left: 8px; }
+  .scroll-top::after { right: 8px; }
+
+  .scroll-body {
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 27px,
+        rgba(180,165,140,0.25) 28px
+      ),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    padding: 40px 50px 50px;
+    position: relative;
+    min-height: 600px;
+  }
+
+  /* Side brushstroke decorations */
+  .scroll-body::before {
+    content: '道';
+    position: absolute;
+    left: 12px;
+    top: 40px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 72px;
+    color: rgba(139,32,32,0.07);
+    line-height: 1;
+    writing-mode: vertical-rl;
+    letter-spacing: 20px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .scroll-bottom {
+    height: 18px;
+    background: linear-gradient(90deg,
+      var(--ink) 0%,
+      #3d2e1e 15%,
+      #5a4535 30%,
+      #6b5542 50%,
+      #5a4535 70%,
+      #3d2e1e 85%,
+      var(--ink) 100%
+    );
+    border-radius: 0 0 3px 3px;
+    position: relative;
+  }
+  .scroll-bottom::before, .scroll-bottom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: #8b7355;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px #5a4535, 0 0 0 5px #3d2e1e;
+  }
+  .scroll-bottom::before { left: 8px; }
+  .scroll-bottom::after { right: 8px; }
+
+  /* Title area */
+  .game-title {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(139,32,32,0.3);
+    position: relative;
+  }
+
+  .game-title h1 {
+    font-size: 28px;
+    color: var(--brush);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+  }
+
+  .game-title .chinese {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 20px;
+    color: var(--red);
+    display: block;
+    margin-top: 6px;
+    opacity: 0.8;
+  }
+
+  .game-title .tagline {
+    font-style: italic;
+    font-size: 13px;
+    color: var(--mist);
+    margin-top: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Output terminal */
+  #output {
+    min-height: 300px;
+    max-height: 420px;
+    overflow-y: auto;
+    margin-bottom: 24px;
+    padding-right: 8px;
+    scroll-behavior: smooth;
+  }
+
+  #output::-webkit-scrollbar { width: 4px; }
+  #output::-webkit-scrollbar-track { background: transparent; }
+  #output::-webkit-scrollbar-thumb { background: rgba(139,32,32,0.3); border-radius: 2px; }
+
+  .msg {
+    margin-bottom: 16px;
+    line-height: 1.75;
+    animation: fadeIn 0.4s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-location {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--brush);
+    border-bottom: 1px solid rgba(139,32,32,0.2);
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+  }
+
+  .msg-desc {
+    font-size: 14px;
+    color: #3d2e1e;
+    line-height: 1.85;
+  }
+
+  .msg-tao {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--red);
+    border-left: 2px solid var(--red);
+    padding-left: 12px;
+    margin-top: 10px;
+    opacity: 0.85;
+  }
+
+  .msg-system {
+    font-size: 13px;
+    color: var(--mist);
+    font-style: italic;
+  }
+
+  .msg-player {
+    font-size: 13px;
+    color: var(--water);
+    font-style: italic;
+  }
+
+  .msg-reward {
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: bold;
+  }
+
+  /* Input area */
+  .input-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid rgba(139,32,32,0.25);
+    padding-top: 20px;
+  }
+
+  .input-prompt {
+    color: var(--red);
+    font-size: 14px;
+    white-space: nowrap;
+    opacity: 0.7;
+  }
+
+  #cmdInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(44,32,24,0.3);
+    font-family: 'Noto Serif', serif;
+    font-size: 14px;
+    color: var(--brush);
+    padding: 4px 0;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  #cmdInput::placeholder {
+    color: var(--mist);
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  #cmdInput:focus {
+    border-bottom-color: var(--red);
+  }
+
+  /* Help bar */
+  .hint-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--mist);
+    background: rgba(155,168,160,0.12);
+    border: 1px solid rgba(155,168,160,0.2);
+    border-radius: 3px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-style: italic;
+  }
+
+  .hint:hover {
+    background: rgba(139,32,32,0.08);
+    border-color: rgba(139,32,32,0.3);
+    color: var(--red);
+  }
+
+  /* Inventory / Stats row */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--mist);
+    margin-bottom: 18px;
+    padding: 8px 10px;
+    background: rgba(155,168,160,0.08);
+    border-radius: 3px;
+    border: 1px solid rgba(155,168,160,0.15);
+  }
+
+  .status-insight {
+    color: var(--gold);
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+<div class="scroll-container">
+  <div class="scroll-top"></div>
+  <div class="scroll-body">
+
+    <div class="game-title">
+      <h1>The Hollow Mountain</h1>
+      <span class="chinese">空山</span>
+      <p class="tagline">A journey through yielding — for those who seek by not-seeking</p>
+    </div>
+
+    <div class="status-bar">
+      <span>Carrying: <span id="inv-display">nothing</span></span>
+      <span>Insight: <span class="status-insight" id="insight-display">0</span> / 10</span>
+      <span>Breath: <span id="breath-display">still</span></span>
+    </div>
+
+    <div id="output"></div>
+
+    <div class="input-area">
+      <span class="input-prompt">❧</span>
+      <input id="cmdInput" type="text" placeholder="what do you do? (try: look, go north, take stone...)" autocomplete="off" spellcheck="false" />
+    </div>
+
+    <div class="hint-bar" id="hintBar"></div>
+
+  </div>
+  <div class="scroll-bottom"></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// WORLD DATA
+// ─────────────────────────────────────────────
+const ROOMS = {
+  forest_path: {
+    name: "A Winding Path Through Pines",
+    desc: `The path ahead dissolves into mist. Ancient pines stand on either side, their roots lifting from the earth like gnarled fingers releasing their grip. A small stream trickles somewhere below you — you hear it but cannot yet see it. To the north, the mountain rises. To the east, smoke wisps from a valley. The path south leads back toward the world you left.`,
+    tao: `"A journey of a thousand li begins with a single step." — Laozi`,
+    exits: { north: "mountain_base", east: "village", south: "world_gate" },
+    items: ["pine_cone"],
+    hints: ["go north", "go east", "look stream", "listen"],
+  },
+
+  world_gate: {
+    name: "The Gate Between Worlds",
+    desc: `A stone arch stands here, worn smooth by centuries of wind. Through it: the noise, the striving, the city of wanting. You came from there. You feel its pull — habit is strong. But you turned away once already. The mountain waits behind you.`,
+    tao: `"Returning is the movement of the Tao." — Laozi`,
+    exits: { north: "forest_path" },
+    items: [],
+    hints: ["go north", "look arch"],
+    onEnter: () => game.addMsg("system", "Something in you resists going back. Not yet."),
+  },
+
+  village: {
+    name: "The Valley of Smoke and Bread",
+    desc: `A small village of a dozen homes. A potter works at her wheel, shaping and unshaping the same clay without urgency. An old man naps under a persimmon tree. A child chases a chicken, laughing, unconcerned with catching it. No one looks at you with suspicion — or much interest. The smoke smells of rice and pine resin. The mountain is visible to the northwest.`,
+    tao: `"The sage does not hoard. The more he gives, the more he has." — Laozi`,
+    exits: { northwest: "mountain_base", west: "forest_path" },
+    items: ["rice_bundle"],
+    hints: ["talk potter", "talk old man", "go northwest", "look child"],
+    onEnter: () => {},
+  },
+
+  mountain_base: {
+    name: "The Foot of the Hollow Mountain",
+    desc: `The mountain does not announce itself. It simply is. A wall of grey stone rises until clouds swallow it. At the base: a narrow cleft, just wide enough to enter if you breathe out and turn sideways. Beside it, someone has left a pair of worn sandals and a walking stick. Whoever left them has no further need of them.`,
+    tao: `"The usefulness of a vessel lies in what is not there." — Laozi`,
+    exits: { south: "forest_path", enter: "cave_mouth", up: "cave_mouth" },
+    items: ["sandals", "walking_stick"],
+    hints: ["take sandals", "take walking_stick", "enter cleft", "go up", "look cleft"],
+  },
+
+  cave_mouth: {
+    name: "The Mouth of the Cave",
+    desc: `You squeeze through the cleft and find yourself in a wide stone throat. The rock is moist and cool. Your eyes adjust: the cave doesn't go dark all at once — it dims gradually, like the end of a day. Stalactites hang overhead like an unfinished sentence. Somewhere deeper: a faint luminescence, neither warm nor cold. A branching passage goes east toward the sound of water; the main path continues down.`,
+    tao: `"Know others: wisdom. Know yourself: enlightenment." — Laozi`,
+    exits: { out: "mountain_base", down: "water_gallery", east: "echo_chamber" },
+    items: ["fallen_leaf"],
+    hints: ["go down", "go east", "look stalactites", "listen"],
+  },
+
+  water_gallery: {
+    name: "The Gallery of Still Water",
+    desc: `The cave opens into a low chamber where a black pool spreads wall to wall, perfectly still. The ceiling reflects in it, so you seem to stand between two infinities. A narrow ledge of stone just wide enough for your feet runs along the left wall. You could edge across. Or you could sit here a while. There is no urgency.`,
+    tao: `"The highest good is like water — it benefits all things and does not compete." — Laozi`,
+    exits: { up: "cave_mouth", cross: "deep_hollow", sit: "water_gallery" },
+    items: ["water_stone"],
+    puzzle: "reflection",
+    hints: ["look water", "look reflection", "sit", "cross", "drop item"],
+  },
+
+  echo_chamber: {
+    name: "The Chamber of Echoes",
+    desc: `A domed chamber where sound behaves strangely. You whisper and the room amplifies it; you shout and it is swallowed whole. The cave's memory is long — you can hear, faintly, the voices of those who passed through before. A crack in the eastern wall breathes cold air. Someone has scratched a symbol into the stone: ☯.`,
+    tao: `"Knowing when to stop, you will meet no danger." — Laozi`,
+    exits: { west: "cave_mouth", crack: "deep_hollow" },
+    items: [],
+    puzzle: "silence",
+    hints: ["listen", "whisper", "touch symbol", "look crack", "go crack"],
+  },
+
+  deep_hollow: {
+    name: "The Heart of the Hollow Mountain",
+    desc: `You have arrived at the center. The cave opens into a sphere of stone, and at its center floats — there is no other word — a small flame. Not burning anything. Not needing fuel. It has been here, perhaps, forever. The light it gives is enough to see by, but asks nothing of your eyes. The air here is the cleanest you have ever breathed. A narrow shaft above opens to a circle of sky, impossibly blue. You sense this is the end and the beginning.`,
+    tao: `"The Tao that can be spoken is not the eternal Tao." — Laozi, Chapter 1`,
+    exits: { back: "water_gallery" },
+    items: ["eternal_flame"],
+    onEnter: () => {
+      game.insight = Math.max(game.insight, 8);
+      game.updateStatus();
+    },
+    hints: ["look flame", "sit", "breathe", "take flame", "touch flame"],
+  },
+};
+
+const ITEMS = {
+  pine_cone:    { name: "a pine cone", desc: "Fallen from a great height. It holds seeds inside, patient as eternity.", weight: "light" },
+  rice_bundle:  { name: "a small bundle of rice", desc: "Wrapped in a leaf. The potter pressed it into your hands without a word.", weight: "light", onTake: () => game.addMsg("system", "The potter smiles and returns to her clay.") },
+  sandals:      { name: "a pair of worn sandals", desc: "Shaped perfectly to someone else's feet — yet they fit you just the same.", weight: "light", onEquip: () => { game.addMsg("tao", "You put on the sandals. Your feet know the path now."); game.breath = "grounded"; } },
+  walking_stick:{ name: "a walking stick", desc: "Gnarled wood, smooth where the hand rests. It leans, never forces.", weight: "light" },
+  fallen_leaf:  { name: "a fallen leaf", desc: "Still green on one side. Yellow on the other. Neither alive nor dead — between.", weight: "none" },
+  water_stone:  { name: "a smooth river stone", desc: "The water made it round by touching it ten thousand times without effort.", weight: "moderate" },
+  eternal_flame:{ name: "the eternal flame", notTakeable: true, desc: "It is not a thing to be carried. It is already in you. You understand this now." },
+};
+
+const PUZZLES = {
+  reflection: {
+    triggers: ["look water", "look reflection", "look pool", "look myself", "look self"],
+    solved: false,
+    reward_insight: 2,
+    response: `You look into the still water. Your reflection looks back, unbothered. You notice: it doesn't copy you — it shows you what you would look like if you were completely at rest. A ripple passes. The reflection breaks. When it settles, you are still there.\n\nThe pool taught you something about stillness you cannot put into words.`,
+  },
+  silence: {
+    triggers: ["listen", "be quiet", "silent", "silence", "whisper nothing", "say nothing"],
+    solved: false,
+    reward_insight: 2,
+    response: `You stop. You do not speak, do not move. The echoes fade one by one, oldest first. And then — underneath — you hear something that was always there: your own breathing, and under that, the mountain's breath, slow as seasons.\n\nThe chamber has nothing left to reflect. You understand: most noise is borrowed.`,
+  },
+};
+
+const TAOIST_RESPONSES = {
+  force: [
+    "You try to force it. Nothing gives. Perhaps forcing is the wrong approach.",
+    "The door does not yield to pushing. Water does not yield to striking.",
+    "Your effort meets resistance. Where is the path of least resistance?",
+  ],
+  patience: [
+    "You wait. The waiting is not empty — it fills with small sounds, small noticing.",
+    "To wait without waiting for something is a difficult art. You are learning it.",
+  ],
+  wuwei: [
+    "You do not act. The moment passes through you like wind through a hollow reed.",
+    "In not-doing, something is done.",
+    "The sage acts without acting. The work is done, and no one says 'I did this.'",
+  ],
+  greeting: [
+    "The mountain acknowledges you — or perhaps it doesn't. It is hard to tell.",
+    "To greet the nameless: this is a good beginning.",
+  ],
+};
+
+// ─────────────────────────────────────────────
+// GAME ENGINE
+// ─────────────────────────────────────────────
+const game = {
+  room: "forest_path",
+  inventory: [],
+  insight: 0,
+  breath: "unsettled",
+  equippedSandals: false,
+  history: [],
+  puzzlesSolved: new Set(),
+
+  init() {
+    this.speak(null, ROOMS[this.room]);
+    this.updateStatus();
+    this.updateHints();
+    document.getElementById("cmdInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        const raw = e.target.value.trim();
+        if (!raw) return;
+        e.target.value = "";
+        this.addMsg("player", `❧ ${raw}`);
+        this.parse(raw.toLowerCase());
+      }
+    });
+  },
+
+  parse(raw) {
+    const words = raw.split(/\s+/);
+    const verb = words[0];
+    const rest = words.slice(1).join(" ");
+
+    // Check puzzles first
+    for (const [id, puzzle] of Object.entries(PUZZLES)) {
+      if (!puzzle.solved && puzzle.triggers.some(t => raw.includes(t))) {
+        if (this.isInRoom(id === "reflection" ? "water_gallery" : "echo_chamber")) {
+          puzzle.solved = true;
+          this.puzzlesSolved.add(id);
+          this.insight = Math.min(10, this.insight + puzzle.reward_insight);
+          this.addMsg("desc", puzzle.response);
+          this.addMsg("reward", `✦ Insight deepens (+${puzzle.reward_insight})`);
+          this.updateStatus();
+          this.checkEnlightenment();
+          return;
+        }
+      }
+    }
+
+    switch(verb) {
+      case "go": case "move": case "walk": case "travel": case "head":
+        this.go(rest); break;
+      case "north": case "south": case "east": case "west":
+      case "up": case "down": case "enter": case "out": case "back": case "cross":
+      case "northwest": case "northeast": case "southeast": case "southwest": case "crack":
+        this.go(verb); break;
+      case "n": this.go("north"); break;
+      case "s": this.go("south"); break;
+      case "e": this.go("east"); break;
+      case "w": this.go("west"); break;
+
+      case "look": case "examine": case "inspect": case "study": case "observe":
+        this.look(rest); break;
+      case "l": this.look(""); break;
+
+      case "take": case "pick": case "grab": case "get": case "collect":
+        this.take(rest.replace(/^up\s*/,"")); break;
+      case "drop": case "leave": case "release":
+        this.drop(rest); break;
+      case "inventory": case "i": case "inv": case "carry": case "bag":
+        this.showInventory(); break;
+      case "wear": case "equip": case "put":
+        this.equip(rest); break;
+
+      case "sit": case "rest": case "meditate": case "breathe": case "wait":
+        this.sit(); break;
+      case "listen":
+        this.listen(); break;
+      case "say": case "speak": case "tell": case "ask": case "whisper":
+        this.say(rest); break;
+      case "talk":
+        this.talk(rest); break;
+      case "touch": case "feel": case "rub":
+        this.touch(rest); break;
+
+      case "help": case "?": case "commands":
+        this.showHelp(); break;
+      case "score": case "insight":
+        this.showScore(); break;
+
+      default:
+        this.unknown(raw);
+    }
+    this.updateHints();
+  },
+
+  isInRoom(id) { return this.room === id; },
+
+  go(dir) {
+    const room = ROOMS[this.room];
+    if (!dir || dir === "") {
+      this.addMsg("system", "Where would you go? The path only opens when you name it."); return;
+    }
+    // Natural language parsing
+    const dirMap = { "north": "north", "south": "south", "east": "east", "west": "west",
+      "up": "up", "down": "down", "enter": "enter", "out": "out", "back": "back",
+      "cross": "cross", "northwest": "northwest", "northeast": "northeast",
+      "crack": "crack", "cleft": "enter", "inside": "enter", "into cleft": "enter",
+      "into cave": "enter", "valley": "east" };
+
+    const mapped = dirMap[dir] || dir;
+    const dest = room.exits[mapped];
+
+    if (!dest) {
+      const taoist = ["The path you imagine is not yet here. What is actually here?",
+        "Not every direction holds a way forward. The Tao is not in all directions — only the right one.",
+        "You move that way and find only rock, root, and resistance."];
+      this.addMsg("system", taoist[Math.floor(Math.random() * taoist.length)]);
+      return;
+    }
+    this.room = dest;
+    const newRoom = ROOMS[dest];
+    if (newRoom.onEnter) newRoom.onEnter();
+    this.speak(null, newRoom);
+    this.updateStatus();
+  },
+
+  look(target) {
+    const room = ROOMS[this.room];
+    if (!target || target === "around" || target === "room") {
+      this.speak(null, room);
+      return;
+    }
+
+    // Item lookups
+    const allItems = [...room.items, ...this.inventory];
+    for (const itemId of allItems) {
+      if (target.includes(itemId.replace("_"," ")) || itemId.includes(target.replace(" ","_"))) {
+        const item = ITEMS[itemId];
+        if (item) { this.addMsg("desc", item.desc); return; }
+      }
+    }
+
+    // Contextual descriptions
+    const contextuals = {
+      "stream": "You look for the stream. You find it by sound first — then sight: a thread of silver between mossy rocks below. It goes where it must go.",
+      "mist": "The mist neither comes nor goes. It simply persists, indifferent to your observation of it.",
+      "pine": "The pines are old. Their needles smell of cold altitude. Each tree is slightly different — but the forest is one thing.",
+      "stalactite": "Thousands of years of patient dripping made these. Nothing was forced. Everything arrived.",
+      "smoke": "The smoke moves with the wind, making no effort to be smoke. It simply is.",
+      "reflection": `You look into ${this.room === "water_gallery" ? "the black pool" : "whatever surface you find"}. Something looks back.`,
+      "symbol": "A brushed circle, half filled. The symbol of the Tao: not-this, not-that — both, always.",
+      "flame": this.room === "deep_hollow" ?
+        "The flame burns without fuel, without urgency. It has been burning for longer than memory. You cannot say if it is warm — it doesn't ask you to feel it." :
+        "There is no flame here. But you remember the one that is waiting.",
+      "arch": "The stone arch has no inscription. It needs none. Passing through it is the only text.",
+      "sky": "A circle of sky, impossibly blue. You realize: you have been underground but never in darkness.",
+      "crack": "A crack in the stone, breathing cool air from deep within. Something is through there.",
+      "water": `You look at the water. ${this.room === "water_gallery" ? "Still. Black. Perfect. You see yourself." : "Water is never really still — you just stop noticing the movement."}`,
+    };
+
+    for (const [key, response] of Object.entries(contextuals)) {
+      if (target.includes(key)) { this.addMsg("desc", response); return; }
+    }
+
+    this.addMsg("system", `You look at ${target}. It does not yield its secrets immediately. Perhaps looking is not the same as seeing.`);
+  },
+
+  take(target) {
+    const room = ROOMS[this.room];
+    for (const itemId of [...room.items]) {
+      if (target.includes(itemId.replace("_"," ")) || itemId.includes(target.replace(" ","_"))) {
+        const item = ITEMS[itemId];
+        if (item.notTakeable) {
+          this.addMsg("tao", item.desc);
+          this.insight = Math.min(10, this.insight + 1);
+          this.updateStatus();
+          this.checkEnlightenment();
+          return;
+        }
+        room.items = room.items.filter(i => i !== itemId);
+        this.inventory.push(itemId);
+        this.addMsg("desc", `You take ${item.name}. ${item.desc}`);
+        if (item.onTake) item.onTake();
+        this.updateStatus();
+        return;
+      }
+    }
+    this.addMsg("system", `You reach for it — and find your hand empty. Perhaps it was never yours to take.`);
+  },
+
+  drop(target) {
+    for (const itemId of [...this.inventory]) {
+      if (target.includes(itemId.replace("_"," ")) || itemId.includes(target.replace(" ","_"))) {
+        const item = ITEMS[itemId];
+        this.inventory = this.inventory.filter(i => i !== itemId);
+        ROOMS[this.room].items.push(itemId);
+
+        const reflections = [
+          `You set down ${item.name}. The act of releasing feels lighter than the act of holding.`,
+          `You let go of ${item.name}. The world does not fall apart. It may even be better.`,
+          `${item.name} returns to the earth. It was only ever on loan.`,
+        ];
+        this.addMsg("desc", reflections[Math.floor(Math.random() * reflections.length)]);
+
+        if (this.room === "water_gallery" && !PUZZLES.reflection.solved) {
+          this.addMsg("tao", "The item falls into the pool. Ripples spread and fade. You understand: the pool accepts everything without preference.");
+          PUZZLES.reflection.solved = true;
+          this.insight = Math.min(10, this.insight + 1);
+          this.updateStatus();
+        }
+        return;
+      }
+    }
+    this.addMsg("system", "You don't carry that. But you have carried heavier things without knowing it.");
+  },
+
+  equip(rest) {
+    if (rest.includes("sandal")) {
+      if (this.inventory.includes("sandals") && !this.equippedSandals) {
+        this.equippedSandals = true;
+        ITEMS.sandals.onEquip();
+        this.breath = "grounded";
+        this.insight = Math.min(10, this.insight + 1);
+        this.updateStatus();
+      } else if (this.equippedSandals) {
+        this.addMsg("system", "You are already wearing the sandals. They have already become part of you.");
+      } else {
+        this.addMsg("system", "You don't have sandals to put on.");
+      }
+    } else {
+      this.addMsg("system", `You put on ${rest || "it"}... or try to. Some things resist being worn.`);
+    }
+  },
+
+  showInventory() {
+    if (this.inventory.length === 0) {
+      this.addMsg("desc", "You carry nothing. This is not absence — this is readiness.\n\nThe Tao Te Ching says: the empty space in a bowl is what makes it useful.");
+      return;
+    }
+    const items = this.inventory.map(id => ITEMS[id]?.name || id).join("\n• ");
+    this.addMsg("desc", `You carry:\n• ${items}\n\nEach thing chosen; each thing temporary.`);
+  },
+
+  sit() {
+    const room = ROOMS[this.room];
+    const sitMsgs = {
+      forest_path: "You sit on a root. The pines don't notice. The mist thickens slightly. Time passes — you can't say how much. When you rise, you feel no different, and entirely different.",
+      water_gallery: "You sit at the edge of the pool. The water doesn't move to accommodate you. Your reflection settles. For a moment you cannot tell who is sitting: the body at the edge, or the one in the water.",
+      deep_hollow: `You sit before the eternal flame. You breathe. The flame breathes. After a long while, you stop counting your breaths. The thought 'I am meditating' dissolves. What remains cannot be described.`,
+      village: "You sit under the persimmon tree beside the old man. He doesn't acknowledge you. After a while, you realize this is hospitality.",
+      echo_chamber: "You sit in the chamber and listen to your own thoughts echo back. Slowly, the thoughts slow. Slowly, even the silence has echoes. And then: nothing echoing nothing.",
+    };
+    const msg = sitMsgs[this.room] || "You sit. The world continues without your participation. This is allowed.";
+    this.addMsg("desc", msg);
+    this.breath = "still";
+    this.insight = Math.min(10, this.insight + 1);
+    this.updateStatus();
+    this.checkEnlightenment();
+  },
+
+  listen() {
+    const listenMsgs = {
+      forest_path: "You hear: the stream below, two birds debating the same branch, wind through needles, your own heartbeat — which has been going this whole time without your instruction.",
+      mountain_base: "You press your ear to the stone. The mountain has no voice. But it has a vibration — ancient, unworried, constant as gravity.",
+      cave_mouth: "Dripping. The click of your own footstep arriving late. Deep inside: something that might be silence or might be the sound silence makes when listened to.",
+      water_gallery: "The water is completely silent. This disturbs you at first. Water should move. But then: the silence is the water's gift to you.",
+      echo_chamber: "You listen. The chamber returns everything you give it — but transformed, smoothed, as if the cave is trying to understand what you meant.",
+      deep_hollow: "You hear the flame. It makes no sound. Yet you hear it.",
+      village: "The potter's wheel: a steady shush-shush-shush. The old man's breathing. The child laughing somewhere distant. These sounds ask nothing of you.",
+    };
+    const msg = listenMsgs[this.room] || "You listen. The world sounds different when you stop talking.";
+    this.addMsg("desc", msg);
+
+    if (this.room === "echo_chamber" && !PUZZLES.silence.solved) {
+      this.parse("listen");
+    }
+  },
+
+  say(words) {
+    if (!words || words === "nothing" || words === "silence") {
+      this.parse("sit");
+      return;
+    }
+    const responses = TAOIST_RESPONSES.wuwei;
+    this.addMsg("system", `You say: "${words}"`);
+    if (this.room === "echo_chamber") {
+      if (words.length > 20) {
+        this.addMsg("desc", `The chamber swallows your words completely. A long statement returns as silence.`);
+        this.insight = Math.min(10, this.insight + 1);
+        this.updateStatus();
+      } else {
+        this.addMsg("desc", `The echo returns your words: "...${words}..." — softer, and strangely more truthful.`);
+      }
+    } else {
+      this.addMsg("system", responses[Math.floor(Math.random() * responses.length)]);
+    }
+  },
+
+  talk(target) {
+    if (target.includes("potter") && this.room === "village") {
+      this.addMsg("desc", `The potter doesn't look up.\n\n"You came from the city?" she says, though you didn't announce it.\n\n"Yes," you say.\n\n"And you go to the mountain?"\n\n"Yes."\n\nShe lifts the clay, collapses it, begins again. "The mountain will still be there when you have forgotten why you went," she says. "This is a good thing."\n\nShe presses a bundle of rice into your hand.`);
+      if (!ROOMS.village.items.includes("rice_bundle") && !this.inventory.includes("rice_bundle")) {
+        ROOMS.village.items.push("rice_bundle");
+      }
+      this.insight = Math.min(10, this.insight + 1);
+      this.updateStatus();
+    } else if (target.includes("old man") || target.includes("man")) {
+      const turns = ["He opens one eye. 'Sit,' he says. Then closes it again.", "He breathes slowly. After a while, without opening his eyes: 'The ones who ask where the path is have already left it.'", "He says nothing. His silence is not rude. It is generous — it leaves room for you."];
+      this.addMsg("desc", turns[Math.floor(Math.random() * turns.length)]);
+      this.insight = Math.min(10, this.insight + 1);
+      this.updateStatus();
+    } else if (target.includes("child")) {
+      this.addMsg("desc", `The child stops chasing the chicken and looks at you. "It's faster than me," she says cheerfully, "but I don't mind." She runs off again.`);
+      this.insight = Math.min(10, this.insight + 1);
+      this.updateStatus();
+    } else {
+      this.addMsg("system", `There is no one called ${target || "that"} here to talk to — at least, no one who can speak back. The mountain listens differently.`);
+    }
+  },
+
+  touch(target) {
+    if (target.includes("symbol") || target.includes("taichi") || target.includes("yin") || target.includes("yang")) {
+      this.addMsg("desc", `You trace the symbol with one finger. The stone is cold. The line of the symbol is worn smooth — many fingers before yours.\n\nYou notice: the dark half and light half are not opposites. They are the same shape, mirrored. Each contains a seed of the other.`);
+      this.insight = Math.min(10, this.insight + 1);
+      this.updateStatus();
+      this.checkEnlightenment();
+    } else if (target.includes("flame") && this.room === "deep_hollow") {
+      this.addMsg("tao", `You reach toward the flame. Your hand passes through it. You feel neither warmth nor cold — only the sensation of being recognized.\n\nThe flame is not fire. It is something for which there is no word yet.`);
+      this.insight = Math.min(10, this.insight + 2);
+      this.updateStatus();
+      this.checkEnlightenment();
+    } else {
+      this.addMsg("desc", `You reach out and touch it. It is exactly as it appears and nothing more. Sometimes that is enough.`);
+    }
+  },
+
+  checkEnlightenment() {
+    if (this.insight >= 10 && this.room === "deep_hollow") {
+      setTimeout(() => {
+        this.addMsg("tao", `\n— ✦ — ✦ — ✦ —\n\nYou have reached the still point at the center of the turning world.\n\nThe flame does not congratulate you. The mountain does not applaud. The silence continues, as it always has.\n\nYou have not found the Tao. You have stopped looking for it long enough to notice it was never hidden.\n\n"When you realize there is nothing lacking, the whole world belongs to you."\n— Laozi\n\n— ✦ — THE END — ✦ —`);
+        this.addMsg("reward", `✦ Enlightenment — The journey is complete. Thank you for walking slowly.`);
+      }, 800);
+    }
+  },
+
+  unknown(raw) {
+    const responses = [
+      `"${raw}" — you try this and find nothing happens. Or everything happens, and you cannot tell the difference.`,
+      `The cave does not recognize "${raw}". Perhaps it is the wrong word. Or perhaps the right action needs no word.`,
+      `You attempt to ${raw}. The mountain is unmoved. This is its answer.`,
+      `There are many ways to be in a place. "${raw}" is one of them. Nothing changes. Or everything does, slowly.`,
+    ];
+    this.addMsg("system", responses[Math.floor(Math.random() * responses.length)]);
+  },
+
+  showHelp() {
+    this.addMsg("desc",
+      `Movement: go north/south/east/west/up/down, or just type the direction.\nSpecial: enter, cross, out, back, crack\n\nActions: look [thing], take [thing], drop [thing], wear [thing]\nInventory: i  or  inventory\n\nDwelling: sit, meditate, breathe, wait, listen\nSpeech: say [words], talk [person], whisper\nTouch: touch [thing], feel [thing]\n\nReflection: score, insight\n\nNote: Some paths open through patience and observation, not force.`
+    );
+  },
+
+  showScore() {
+    const solved = [...this.puzzlesSolved].join(", ") || "none yet";
+    this.addMsg("desc",
+      `Your insight: ${this.insight} / 10\nBreath: ${this.breath}\nMysteries witnessed: ${solved}\nItems carried: ${this.inventory.length}\n\nThe goal is not the score. But the score reflects the journey.`
+    );
+  },
+
+  speak(label, room) {
+    if (label) { this.addMsg("location", label); return; }
+    this.addMsg("location", room.name);
+    this.addMsg("desc", room.desc);
+    if (room.items.length > 0) {
+      const visible = room.items.map(id => ITEMS[id]?.name).filter(Boolean).join(", ");
+      if (visible) this.addMsg("system", `You notice: ${visible}.`);
+    }
+    this.addMsg("tao", room.tao);
+  },
+
+  addMsg(type, text) {
+    const el = document.createElement("div");
+    el.className = `msg msg-${type}`;
+    el.style.animationDelay = `${Math.random() * 0.1}s`;
+    el.textContent = text;
+    const out = document.getElementById("output");
+    out.appendChild(el);
+    out.scrollTop = out.scrollHeight;
+  },
+
+  updateStatus() {
+    const inv = this.inventory.length === 0 ? "nothing" :
+      this.inventory.map(id => ITEMS[id]?.name?.replace("a ","").replace("an ","")).join(", ");
+    document.getElementById("inv-display").textContent = inv;
+    document.getElementById("insight-display").textContent = this.insight;
+    document.getElementById("breath-display").textContent = this.breath;
+  },
+
+  updateHints() {
+    const room = ROOMS[this.room];
+    const bar = document.getElementById("hintBar");
+    bar.innerHTML = "";
+    if (!room.hints) return;
+    room.hints.forEach(hint => {
+      const el = document.createElement("span");
+      el.className = "hint";
+      el.textContent = hint;
+      el.onclick = () => {
+        const input = document.getElementById("cmdInput");
+        input.value = hint;
+        input.focus();
+      };
+      bar.appendChild(el);
+    });
+  },
+};
+
+game.init();
+</script>
+</body>
+</html>
